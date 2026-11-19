@@ -1,0 +1,7 @@
+-- Up Migration
+ALTER TABLE tasks
+ADD COLUMN IF NOT EXISTS stat boolean NOT NULL DEFAULT FALSE;
+
+-- Down Migration
+ALTER TABLE tasks
+DROP COLUMN IF EXISTS stat;
