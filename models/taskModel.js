@@ -34,14 +34,13 @@ const deleteTask = async (id) => {
      return result.rows[0] || null;
 }
 
-const updateTask = async ({taskId, taskName}) => {
+const updateTask = async ({taskId, taskName, stat}) => {
     const result = await pool.query(
-        `update tasks set task_name = $1 where task_id = $2 returning *`,
-        [taskName, taskId]
+        `update tasks set task_name = coalesce($1, task_Name), stat = coalesce($2, stat) where task_id = $3 returning *`,
+        [taskName, stat, taskId]
     );
 
     return result.rows[0] || null;
 }
 
 module.exports = {createTask, getTasks, getTaskById, updateTask, deleteTask};
-
