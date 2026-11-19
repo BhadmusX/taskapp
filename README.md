@@ -164,7 +164,7 @@ Check the current structure at any time with `\d users` and `\d tasks` in `psql`
 
 ## Roadmap
 
-- [ ] Stronger input validation (types, ranges, email format)
+- [ x ] Stronger input validation (types, ranges, email format)
 - [ ] Index on `tasks.user_id`
 - [ ] User stats endpoint (total and completed tasks)
 - [ ] Pagination for list endpoints
