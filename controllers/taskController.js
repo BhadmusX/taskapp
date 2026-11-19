@@ -64,17 +64,38 @@ const deleteTask = async (req, res) => {
 const updateTask = async (req, res) => {
     try{
         const taskId = req.params.id;
-        const {taskName} = req.body;
+        const {taskName, stat} = req.body;
 
         if(!taskId){
             return res.status(400).json({success: false, message: "taskId is not provided"});
         }
 
-        if(!taskName){
-            return res.status(400).json({success: false, message: "taskName is not provided"});
+        if(taskName === undefined && stat === undefined){
+            return res.status(400).json({success: false, message: "Nothing to update"})
         }
 
-        const response = await taskModel.updateTask({taskId, taskName});
+
+        let trimmedTaskName;
+
+        if(taskName !== undefined){
+            if(typeof taskName !== "string"){
+                return res.status(400).json({success: false, message: "taskName must be a string"});
+            }
+            
+            trimmedTaskName = taskName.trim();
+
+        }
+
+        if(stat !== undefined){
+            if(typeof stat !== 'boolean'){
+                return res.status(400).json({success: false, message: "stat must be a boolean"});
+            }
+        }
+
+        const response = await taskModel.updateTask({taskId, taskName: trimmedTaskName, stat});
+        if(!response){
+            return res.status(404).json({success: false, message: "Task not found"});
+        }
         return res.status(200).json({success: true, message: "Task updated successfully", task: response});
     }catch(err){
         console.log(err);
