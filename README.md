@@ -162,6 +162,36 @@ Check the current structure at any time with `\d users` and `\d tasks` in `psql`
 - One shared `Pool` is created in `db/index.js` and reused everywhere.
 - Duplicate emails are handled twice: a pre-check in the controller for a friendly error, and a catch for Postgres error code `23505` to cover simultaneous requests.
 
+## Index performance test
+
+Tested on a separate `taskdb_perf` database seeded with generated data (`db/seed.sql`), using PostgreSQL 18.
+
+**Query under test:**
+
+```sql
+SELECT * FROM tasks WHERE user_id = 42 ORDER BY task_id DESC;
+```
+
+| # | Stage | Users | Tasks | Index | Scan type | Sort step | Rows removed by filter | Execution time (ms) |
+|---|-------|------:|------:|-------|-----------|-----------|-----------------------:|--------------------:|
+| 1 | Baseline (small data) | 100 | 1,000 | none (primary key only) | Seq Scan | Yes (quicksort) | 990 | 0.777 |
+| 2 | **Before index** | 5,000 | 500,000 | none (primary key only) | Seq Scan| Yes (quicksort) | 166,638 | 39.210 |
+| 3 | After index | 5,000 | 500,000 | `(user_id)` | Bitmap index Scan + Bitmap Heap Scan| Yes (quicksort) |0 | 0.733 |
+| 4 | After index | 5,000 | 500,000 | `(user_id, task_id DESC)` | | | | |
+| 5 | After index | 5,000 | 500,000 | partial index on `stat = false` | | | | |
+
+### Findings
+
+- Fill in a short summary after the tests, for example which index the planner chose and how much faster it was.
+- A `stat` index on its own was skipped, because a boolean column has only two values.
+
+### How to reproduce
+
+1. Create the test database and run the migrations against it.
+2. Run `db/seed.sql` against `taskdb_perf`.
+3. Run `ANALYZE tasks;`.
+4. Run `EXPLAIN ANALYZE` on the query above.
+
 ## Roadmap
 
 - [ x ] Stronger input validation (types, ranges, email format)
