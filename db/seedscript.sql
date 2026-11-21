@@ -9,13 +9,13 @@ SELECT
     random(18, 77),
     'user' || n || '@example.com'
 FROM
-    generate_series(1, 100) AS n;
+    generate_series(1, 5000) AS n;
 
 INSERT INTO
     tasks (task_name, user_id, stat)
 SELECT
     'task' || n,
-    floor(random() * 100 + 1)::int,
+    floor(random() * 5000 + 1)::int,
     random() < 0.5
 FROM
-    generate_series(1, 1000) AS n;
+    generate_series(1, 500000) AS n;
