@@ -21,7 +21,26 @@ const createTask = async (req, res) => {
 
 const getTask = async (req, res) => {
     try{
-        const response = await taskModel.getTasks();
+        const {stat, userId} = req.query;
+
+        let boolStat;
+        let filter = {};
+        if(stat !== undefined){
+            if(stat !== "true" && stat !== "false"){
+            return res.status(400).json({success: false, message: "stat must be a true or false"})
+        }
+        boolStat = stat === "true";
+        filter.stat = boolStat;
+        }
+
+        if(userId !== undefined){
+            if(!Number.isInteger(userId) && userId < 1){
+            return res.status(400).json({success: false, message: "userId must be a whole number and greater than 1"})
+        }
+        filter.userId = userId;
+        }
+
+        const response = await taskModel.getTasks(filter);
         return res.status(200).json({success: true, tasks: response});
     }catch(err){
         console.log(err);
@@ -103,4 +122,30 @@ const updateTask = async (req, res) => {
     }
 }
 
-module.exports = {createTask, getTask, getTaskById, deleteTask, updateTask};
+const getUserStat = async (req, res) => {
+    try{
+    const {id} = req.params;
+    console.log(id);
+
+    if(id === undefined){
+        return res.status(400).json({success: false, message: "id must be passed"});
+    }
+
+    if(!Number.isInteger(id) || id < 1){
+        return res.status(400).json({success: false, message: "id must be a whole number and be greater than 1"});
+    }
+    console.log(id);
+
+    const result = await taskModel.getUserStat({id});
+    res.status(200).json({success: true, tasks: result});
+}catch(err){
+    console.log(err);
+    return res.status(500).json({success: false, message: "Something went wrong"})
+}
+
+
+}
+
+
+
+module.exports = {createTask, getTask, getTaskById, deleteTask, updateTask, getUserStat};
