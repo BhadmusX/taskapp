@@ -172,13 +172,21 @@ Tested on a separate `taskdb_perf` database seeded with generated data (`db/seed
 SELECT * FROM tasks WHERE user_id = 42 ORDER BY task_id DESC;
 ```
 
-| # | Stage | Users | Tasks | Index | Scan type | Sort step | Rows removed by filter | Execution time (ms) |
-|---|-------|------:|------:|-------|-----------|-----------|-----------------------:|--------------------:|
-| 1 | Baseline (small data) | 100 | 1,000 | none (primary key only) | Seq Scan | Yes (quicksort) | 990 | 0.777 |
-| 2 | **Before index** | 5,000 | 500,000 | none (primary key only) | Seq Scan| Yes (quicksort) | 166,638 | 39.210 |
-| 3 | After index | 5,000 | 500,000 | `(user_id)` | Bitmap index Scan + Bitmap Heap Scan| Yes (quicksort) |0 | 0.733 |
-| 4 | After index | 5,000 | 500,000 | `(user_id, task_id DESC)` | | | | |
-| 5 | After index | 5,000 | 500,000 | partial index on `stat = false` | | | | |
+**Query A:** `SELECT * FROM tasks WHERE user_id = 42 ORDER BY task_id DESC;`
+**Query B:** `SELECT * FROM tasks WHERE user_id = 42 AND stat = false ORDER BY task_id DESC;`
+
+| # | Query | Stage | Users | Tasks | Index | Scan type | Sort step | Rows removed by filter* | Execution time (ms) |
+|---|-------|-------|------:|------:|-------|-----------|-----------|------------------------:|--------------------:|
+| 1 | A | Baseline (small data) | 100 | 1,000 | none (primary key only) | Seq Scan | Yes (quicksort) | 990 | 0.777 |
+| 2 | A | **Before index** | 5,000 | 500,000 | none (primary key only) | Parallel Seq Scan | Yes (quicksort) | 166,638 | 39.210 |
+| 3 | A | After index | 5,000 | 500,000 | `(user_id)` | Bitmap Index Scan + Bitmap Heap Scan | Yes (quicksort) | 0 | 0.733 |
+| 4 | A | After index | 5,000 | 500,000 | `(user_id, task_id DESC)` |Bitmap Index Scan + Bitmap Heap Scan | Yes(quicksort) | 0 | 0.521 |
+| 5 | B | **Before index** | 5,000 | 500,000 | `(user_id, task_id DESC)` | Bitmap Index Scan + Bitmap Heap Scan | Yes(quicksort) | 43 | 0.631 |
+| 6 | B | After index | 5,000 | 500,000 | `(user_id, task_id DESC)` + partial index on `stat = false` | Bitmap Index Scan + Bitmap Heap Scan |Yes(quicksort) | 0 | 0.306 |
+
+\* Per-worker average for parallel scans, so the total rows discarded in row 2 is about 499,914.
+
+Rows 2 to 4 are compared with row 2. Row 6 is compared with row 5.
 
 ### Findings
 
@@ -195,8 +203,8 @@ SELECT * FROM tasks WHERE user_id = 42 ORDER BY task_id DESC;
 ## Roadmap
 
 - [ x ] Stronger input validation (types, ranges, email format)
-- [ ] Index on `tasks.user_id`
-- [ ] User stats endpoint (total and completed tasks)
+- [ x ] Index on `tasks.user_id`
+- [ x ] User stats endpoint (total and completed tasks)
 - [ ] Pagination for list endpoints
 - [ ] Docker setup for Postgres
 
