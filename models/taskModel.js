@@ -52,12 +52,11 @@ const getTasks = async(filter) => {
     return result.rows || null;
 }
 
-const getTaskById = async (id) => {
+const getTaskById = async ({userId, taskId}) => {
     const result = await pool.query(
-        `select * from tasks where task_id = $1`,
-        [id]
+        `select * from tasks where task_id = $1 and user_id = $2`,
+        [taskId, userId]
     );
-
     return result.rows[0] || null;
 }
 
