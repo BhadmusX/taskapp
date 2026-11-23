@@ -88,4 +88,4 @@ const getUserStat = async ({id}) => {
     return result.rows[0] || null;
 }
 
-module.exports = {createTask, getTasks, getTaskById, updateTask, deleteTask, getCompletedTasks, getUserStat};
+module.exports = {createTask, getTasks, getTaskById, updateTask, deleteTask, getUserStat};
