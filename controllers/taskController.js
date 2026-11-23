@@ -53,7 +53,6 @@ const getTask = async (req, res) => {
         filter.skip = skip;
 
         let boolStat;
-        let filter = {};
         if(stat !== undefined){
             if(stat !== "true" && stat !== "false"){
             return res.status(400).json({success: false, message: "stat must be a true or false"})
@@ -62,11 +61,12 @@ const getTask = async (req, res) => {
         filter.stat = boolStat;
         }
 
-        if(userId !== undefined){
-            if(!Number.isInteger(userId) && userId < 1){
-            return res.status(400).json({success: false, message: "userId must be a whole number and greater than 1"})
+        if(id !== undefined){
+            parsedUserId = Number(id);
+            if(!Number.isInteger(parsedUserId) || parsedUserId < 1){
+            return res.status(400).json({success: false, message: "userId must be a whole number and atleast 1"})
         }
-        filter.userId = userId;
+        filter.userId = parsedUserId;
         }
 
         const response = await taskModel.getTasks(filter);
@@ -79,13 +79,38 @@ const getTask = async (req, res) => {
 
 const getTaskById = async (req, res) => {
     try{
-        const taskId = req.params.id;
 
-        if(!taskId){
-            return res.status(400).json({success: false, message: "taskId is not provided"});
+        const {taskId, userId} = req.params;
+        let parsedTaskId;
+        let parsedUserId;
+
+        if(taskId === undefined){
+            return res.status(400).json({success: false, message: "taskId must be provided"})
         }
 
-        const response = await taskModel.getTaskById(taskId);
+        if(userId === undefined){
+            return res.status(400).json({success: false, message: "userId must be provided"});
+        }
+
+        if(taskId !== undefined){
+            parsedTaskId = Number(taskId);
+            if(!Number.isInteger(parsedTaskId) || parsedTaskId < 1){
+                return res.status(400).json({success: false, message: "taskId must be a whole number and greater than 1"})
+            }
+            
+        }
+
+        if(userId !== undefined){
+            parsedUserId = Number(userId);
+            if(!Number.isInteger(parsedUserId) || parsedUserId < 1){
+                return res.status(400).json({success: false, message: "userId must be a whole number and greater than 1"})
+            }
+        }
+
+        const response = await taskModel.getTaskById({taskId: parsedTaskId, userId: parsedUserId});
+        if(!response){
+            return res.status(404).json({success: false, message: "Task not found"})
+        }
         return res.status(200).json({success: true, task: response});
     }catch(err){
         console.log(err);
