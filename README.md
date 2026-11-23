@@ -111,22 +111,23 @@ Update this table to match the routes you actually built.
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/users` | Create a user |
-| GET | `/users` | List all users |
-| GET | `/users/:id` | Get one user |
-| PATCH | `/users/:id` | Update a user |
-| DELETE | `/users/:id` | Delete a user (their tasks are deleted too) |
-| POST | `/users/:id/tasks` | Create a task for a user |
-| GET | `/users/:id/tasks` | List a user's tasks |
-| PATCH | `/tasks/:id` | Update a task |
-| DELETE | `/tasks/:id` | Delete a task |
+| POST | `api/users/create` | Create a user |
+| GET | `api/users/get` | List all users |
+| GET | `api//users/get/:id` | Get one user |
+| PATCH | `api/users/update/:id` | Update a user |
+| DELETE | `api/users/delete/:id` | Delete a user (their tasks are deleted too) |
+| POST | `api/tasks/create` | Create a task for a user |
+| GET | `api/tasks/get/user/:id` | List a user's tasks |
+| PATCH | `api/tasks/update/:id` | Update a task |
+| DELETE | `api/tasks/delete/:id` | Delete a task |
+| GET | `api/tasks/get/stat/user/:id` | List user task stat|
 
 ### Example requests
 
 Create a user:
 
 ```bash
-curl -i -X POST http://localhost:3000/users \
+curl -i -X POST http://localhost:3000/api/users/create \
   -H "Content-Type: application/json" \
   -d '{"firstName":"Ada","lastName":"Obi","age":25,"email":"ada@example.com"}'
 ```
@@ -134,7 +135,7 @@ curl -i -X POST http://localhost:3000/users \
 Get a user:
 
 ```bash
-curl -i http://localhost:3000/users/1
+curl -i http://localhost:3000/api/users/get/1
 ```
 
 ### Status codes
@@ -205,7 +206,7 @@ Rows 2 to 4 are compared with row 2. Row 6 is compared with row 5.
 - [ x ] Stronger input validation (types, ranges, email format)
 - [ x ] Index on `tasks.user_id`
 - [ x ] User stats endpoint (total and completed tasks)
-- [ ] Pagination for list endpoints
+- [ x ] Pagination for list endpoints
 - [ ] Docker setup for Postgres
 
 ## License
