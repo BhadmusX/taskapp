@@ -31,6 +31,16 @@ const getTasks = async(filter) => {
         sql += ' where ' + conditions.join(' and ');
     } 
 
+    if(filter.limit !== undefined){
+        values.push(filter.limit);
+        sql += ' LIMIT $' + values.length; 
+    }
+
+    if(filter.skip !== undefined){
+        values.push(filter.skip);
+        sql += ' OFFSET $' + values.length;
+    }
+
     console.log(sql, values);
     const result = await pool.query(sql, values);
 
