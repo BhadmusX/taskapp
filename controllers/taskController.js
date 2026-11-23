@@ -21,7 +21,36 @@ const createTask = async (req, res) => {
 
 const getTask = async (req, res) => {
     try{
-        const {stat, userId} = req.query;
+        const {stat, limit, page} = req.query;
+        const {id} = req.params;
+        const filter = {};
+        const DEFAULT_LIMIT = 10;
+        const MAX_LIMIT = 100;
+        let parsedLimit = DEFAULT_LIMIT;
+        let parsedPage = 1;
+        let parsedUserId;
+        console.log()
+
+        if(limit !== undefined){
+            parsedLimit = Number(limit);
+
+            if(!Number.isInteger(parsedLimit) || parsedLimit < 1 || parsedLimit > MAX_LIMIT){
+                return res.status(400).json({success: false, message: `limit must be a whole number and between 1 and ${MAX_LIMIT}`})
+            }
+        }
+
+        if(page !== undefined){
+            parsedPage = Number(page);
+
+            if(!Number.isSafeInteger(parsedPage) || parsedPage < 1){
+                return res.status(400).json({success: false, message: "page must be a whole number and atleast 1"})
+            }
+        }
+ 
+        filter.limit = parsedLimit;
+
+        const skip = (parsedPage -1) * parsedLimit;
+        filter.skip = skip;
 
         let boolStat;
         let filter = {};
